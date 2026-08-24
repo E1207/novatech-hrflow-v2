@@ -1,0 +1,11 @@
+{
+  "name": "novatech-hrflow",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node services/api-gateway/src/index.js",
+    "test": "echo 'Tests backend a implementer au Jour 2' && exit 1",
+    "lint": "node scripts/check-js.js",
+    "type-check": "node scripts/check-js.js"
+  }
+}

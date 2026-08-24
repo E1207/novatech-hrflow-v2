@@ -1,0 +1,30 @@
+# Pipeline initial Jour 1 - les tests, scans et deploiements seront ajoutes
+# progressivement lors des jours suivants.
+
+name: CI - Build, Lint and Type-check
+
+on:
+  push:
+    branches: [main, dev, 'feature/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - run: npm install
+      - run: npm run lint
+      - run: npm run type-check
+      - name: Build service images
+        run: |
+          docker build -t hrflow-api-gateway -f services/api-gateway/Dockerfile services/api-gateway
+          docker build -t hrflow-auth -f services/auth/Dockerfile services/auth
+          docker build -t hrflow-conges -f services/conges/Dockerfile services/conges
+          docker build -t hrflow-paie -f services/paie/Dockerfile services/paie
+          docker build -t hrflow-recrutement -f services/recrutement/Dockerfile services/recrutement
+          docker build -t hrflow-frontend -f frontend/Dockerfile frontend
