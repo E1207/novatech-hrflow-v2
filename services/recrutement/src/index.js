@@ -33,4 +33,8 @@ app.patch('/recrutement/candidat/:id/statut', async (req, res) => {
   res.json({ success: true })
 })
 
-app.listen(3004, () => console.log('Recrutement service running on :3004'))
+if (require.main === module) {
+  app.listen(3004, () => console.log('Recrutement service running on :3004'))
+}
+
+module.exports = app

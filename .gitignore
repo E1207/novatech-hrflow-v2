@@ -7,3 +7,6 @@ build/
 !.env.example
 coverage/
 *.log
+.npm-cache/
+playwright-report/
+test-results/

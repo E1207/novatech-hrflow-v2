@@ -1,7 +1,6 @@
-# Pipeline initial Jour 1 - les tests, scans et deploiements seront ajoutes
-# progressivement lors des jours suivants.
+# Pipeline Jour 2 - build, tests et securite.
 
-name: CI - Build, Lint and Type-check
+name: CI - Build, Test and Security
 
 on:
   push:
@@ -17,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - run: npm install
+      - run: npm ci
       - run: npm run lint
       - run: npm run type-check
       - name: Build service images
@@ -28,3 +27,63 @@ jobs:
           docker build -t hrflow-paie -f services/paie/Dockerfile services/paie
           docker build -t hrflow-recrutement -f services/recrutement/Dockerfile services/recrutement
           docker build -t hrflow-frontend -f frontend/Dockerfile frontend
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+      - run: npm ci
+      - name: Backend tests and coverage
+        run: npm run test:coverage
+      - name: Install frontend dependencies
+        run: npm --prefix frontend ci
+      - name: Build frontend for E2E
+        run: npm --prefix frontend run build
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: E2E tests
+        run: npx playwright test
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            coverage/
+            playwright-report/
+
+  security:
+    name: Security
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+          format: table
+      - name: Start API for OWASP ZAP
+        run: |
+          npm ci
+          DB_HOST=127.0.0.1 DB_NAME=hrflow DB_USER=hrflow DB_PASSWORD=test JWT_SECRET=test-secret node services/api-gateway/src/index.js &
+          sleep 3
+      - name: OWASP ZAP baseline scan
+        run: |
+          docker run --network host -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://127.0.0.1:3000/health -r zap-report.html -I
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: zap-report.html
