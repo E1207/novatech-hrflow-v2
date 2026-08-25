@@ -74,13 +74,21 @@ jobs:
           format: table
       - name: Start API for OWASP ZAP
         run: |
-          npm ci
-          DB_HOST=127.0.0.1 DB_NAME=hrflow DB_USER=hrflow DB_PASSWORD=test JWT_SECRET=test-secret node services/api-gateway/src/index.js &
-          sleep 3
+          docker network create zap-net
+          docker build -t hrflow-api-gateway-security -f services/api-gateway/Dockerfile services/api-gateway
+          docker run -d --name hrflow-api --network zap-net -p 3000:3000 \
+            -e DB_HOST=127.0.0.1 -e DB_NAME=hrflow -e DB_USER=hrflow \
+            -e DB_PASSWORD=test -e JWT_SECRET=test-secret hrflow-api-gateway-security
+          for attempt in $(seq 1 15); do
+            docker exec hrflow-api node -e "require('http').get('http://127.0.0.1:3000/health', response => process.exit(response.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))" && exit 0
+            sleep 2
+          done
+          docker logs hrflow-api
+          exit 1
       - name: OWASP ZAP baseline scan
         run: |
-          docker run --network host --user root -v "${GITHUB_WORKSPACE}:/zap/wrk/:rw" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://127.0.0.1:3000/health -r /zap/wrk/zap-report.html -I
+          docker run --network zap-net --user root -v "${GITHUB_WORKSPACE}:/zap/wrk/:rw" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://hrflow-api:3000/health -r /zap/wrk/zap-report.html -I
       - name: Upload security reports
         if: always()
         uses: actions/upload-artifact@v4
