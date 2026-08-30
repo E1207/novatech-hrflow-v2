@@ -152,6 +152,8 @@ jobs:
     env:
       IMAGE_TAG: ${{ github.sha }}
       ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+      ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+      ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
       RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
     steps:
       - uses: actions/checkout@v4
@@ -159,6 +161,11 @@ jobs:
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Validate ACR pull credentials
+        run: |
+          set -euo pipefail
+          [ -n "${ACR_USERNAME}" ] || { echo "::error::ACR_USERNAME manquant"; exit 1; }
+          [ -n "${ACR_PASSWORD}" ] || { echo "::error::ACR_PASSWORD manquant"; exit 1; }
       - name: Blue/Green deploy each service
         run: bash scripts/deploy/blue-green-deploy.sh
       - name: Post-cutover smoke tests
