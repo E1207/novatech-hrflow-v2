@@ -28,14 +28,13 @@ export default function Login() {
   return (
     <div className="app-shell" style={{ display: 'grid', placeItems: 'center' }}>
       <div className="card" style={{ maxWidth: 560, width: '100%' }}>
-        <div className="kicker">HRFlow</div>
-        <h1 className="title" style={{ fontSize: 40 }}>Connexion</h1>
-        <p className="subtitle">Un front minimal pour tester toute la plateforme en quelques clics.</p>
+        <h1 className="title" style={{ fontSize: 40 }}>HRFlow</h1>
+        <p className="subtitle">Connexion pour tester toute la plateforme en quelques clics.</p>
 
         <form onSubmit={handleLogin} className="stack" style={{ marginTop: 20 }}>
           <input className="input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
           <input className="input" type="password" placeholder="Mot de passe" value={password} onChange={e => setPassword(e.target.value)} />
-          {error && <div className="pill" style={{ color: 'var(--danger)' }}>{error}</div>}
+          {error && <div className="pill error" style={{ color: 'var(--danger)' }}>{error}</div>}
           <button className="button primary" type="submit" disabled={loading}>
             {loading ? 'Connexion...' : 'Connexion'}
           </button>
