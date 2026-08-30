@@ -65,7 +65,13 @@ Voir [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
 
 ## Monitoring & Ops
 
-- Prometheus / Grafana / Alertmanager : [`monitoring/`](monitoring/)
+- Azure monitoring stack :
+  - Grafana : `https://hrflow-grafana.salmonsand-7377abaa.francecentral.azurecontainerapps.io`
+  - Prometheus : `hrflow-prometheus.internal.salmonsand-7377abaa.francecentral.azurecontainerapps.io:9090`
+  - Alertmanager : `hrflow-alertmanager.internal.salmonsand-7377abaa.francecentral.azurecontainerapps.io:9093`
+  - Alert sink : `hrflow-alert-sink.internal.salmonsand-7377abaa.francecentral.azurecontainerapps.io:8080`
+- Config source : [`monitoring/azure/`](monitoring/azure/)
+- Stack portable local : [`monitoring/`](monitoring/)
 - Runbook incident : [`docs/runbook-j4.md`](docs/runbook-j4.md)
 - Runbook rollback : [`docs/runbook-incident.md`](docs/runbook-incident.md)
 - OpenAPI : [`docs/openapi/`](docs/openapi/)
@@ -89,4 +95,3 @@ bash scripts/deploy/smoke-test.sh
 
 - [Rapport technique final](docs/rapport-technique-final.md)
 - [Support de soutenance](docs/support-soutenance.md)
-

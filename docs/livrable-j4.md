@@ -11,6 +11,11 @@
 - **Règles d'alertes** :
   - alerte `HrflowHighErrorRate`
   - alerte `HrflowHighLatencyP99`
+- **Stack Azure opérationnel** :
+  - Prometheus
+  - Alertmanager
+  - Grafana
+  - alert sink
 - **Stack local reproductible** :
   - Prometheus
   - Alertmanager
@@ -27,7 +32,13 @@ Ouvrir :
 - `/metrics` sur le gateway
 - `/metrics` sur chacun des microservices
 
-### 2. Vérifier le dashboard
+### 2. Vérifier le dashboard Azure
+
+Ouvrir Grafana :
+
+`https://hrflow-grafana.salmonsand-7377abaa.francecentral.azurecontainerapps.io`
+
+### 3. Vérifier le dashboard local (optionnel)
 
 Lancer le stack local :
 
@@ -37,14 +48,14 @@ docker compose -f monitoring/docker-compose.yml up -d
 
 Puis ouvrir Grafana sur `http://localhost:3001`.
 
-### 3. Vérifier les alertes
+### 4. Vérifier les alertes
 
 Les alertes sont déclenchées si :
 
 - le taux d'erreur 5xx dépasse 5% pendant 2 minutes
 - la latence P99 dépasse 1 seconde pendant 5 minutes
 
-### 4. Vérifier la doc OpenAPI
+### 5. Vérifier la doc OpenAPI
 
 Consulter :
 

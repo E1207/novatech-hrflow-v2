@@ -1,6 +1,6 @@
 const express = require('express')
 const { Pool } = require('pg')
-const { setupObservability } = require('../../../monitoring/observability')
+const { setupObservability } = require('./observability')
 const app = express()
 app.use(express.json())
 const { middleware: metricsMiddleware, metricsHandler } = setupObservability('conges')

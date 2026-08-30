@@ -1,6 +1,6 @@
 const express = require('express')
 const { createProxyMiddleware } = require('http-proxy-middleware')
-const { setupObservability } = require('../../../monitoring/observability')
+const { setupObservability } = require('./observability')
 const app = express()
 const { middleware: metricsMiddleware, metricsHandler } = setupObservability('gateway')
 

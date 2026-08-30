@@ -1,0 +1,11 @@
+route:
+  receiver: azure-alert-sink
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 30m
+
+receivers:
+  - name: azure-alert-sink
+    webhook_configs:
+      - url: http://hrflow-alert-sink.internal.salmonsand-7377abaa.francecentral.azurecontainerapps.io:8080/alert
+        send_resolved: true

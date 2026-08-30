@@ -1,7 +1,7 @@
 const express = require('express')
 const multer = require('multer')
 const { Pool } = require('pg')
-const { setupObservability } = require('../../../monitoring/observability')
+const { setupObservability } = require('./observability')
 const app = express()
 app.use(express.json())
 const { middleware: metricsMiddleware, metricsHandler } = setupObservability('recrutement')
