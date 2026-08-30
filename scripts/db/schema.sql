@@ -57,8 +57,10 @@ VALUES (1, 'Dupont', 'Marie', 3000, 25)
 ON CONFLICT (id) DO NOTHING;
 
 -- mot de passe : "Demo1234!" (bcrypt, uniquement pour smoke tests staging)
-INSERT INTO users (id, email, password_hash, role)
-VALUES (1, 'smoke-test@hrflow.local', '$2b$10$2o3Y0sexESGGL.a0BLMqoePuFutTvVYwabWQyRbFTJdeDdgY9NmKW', 'admin')
+-- id volontairement non fixé : évite un conflit avec un id déjà pris par un
+-- utilisateur préexistant (ex: id=1 réservé à un compte historique).
+INSERT INTO users (email, password_hash, role)
+VALUES ('smoke-test@hrflow.local', '$2b$10$2o3Y0sexESGGL.a0BLMqoePuFutTvVYwabWQyRbFTJdeDdgY9NmKW', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
 SELECT setval('employees_id_seq', (SELECT COALESCE(MAX(id), 1) FROM employees));
