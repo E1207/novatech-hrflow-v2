@@ -203,12 +203,8 @@ export default function Dashboard() {
       window.location.href = '/'
       return
     }
-    loadVerify()
     loadConges()
     loadCandidates()
-    loadDebugConges()
-    calculatePaie()
-    calculateHours()
   }, [])
 
   return (
