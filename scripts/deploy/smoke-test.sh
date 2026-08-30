@@ -16,13 +16,23 @@ check() {
   local name=$1 method=$2 url=$3 expected=$4 body=${5:-}
   local args=(-s -o /dev/null -w "%{http_code}" --max-time 20 -X "$method" "$url")
   [ -n "$body" ] && args+=(-H "Content-Type: application/json" -d "$body")
-  local status
-  status=$(curl "${args[@]}")
-  if [ "$status" != "$expected" ]; then
-    echo "::error::Smoke test '$name' a échoué (attendu $expected, reçu $status)"
+  local status curl_exit
+  for attempt in 1 2 3; do
+    status=""
+    curl_exit=0
+    status=$(curl "${args[@]}") || curl_exit=$?
+    if [ "$curl_exit" -eq 0 ] && [ "$status" = "$expected" ]; then
+      echo "  ✅ $name -> $status"
+      return 0
+    fi
+    sleep 2
+  done
+  if [ "$curl_exit" -ne 0 ]; then
+    echo "::error::Smoke test '$name' a échoué (curl exit=$curl_exit, attendu $expected)"
     return 1
   fi
-  echo "  ✅ $name -> $status"
+  echo "::error::Smoke test '$name' a échoué (attendu $expected, reçu $status)"
+  return 1
 }
 
 echo "=== Smoke tests post-cutover ($BASE) ==="
