@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api'
+const browserApiUrl = typeof window !== 'undefined' ? `${window.location.origin}/api` : ''
+export const API_URL = process.env.REACT_APP_API_URL || browserApiUrl || 'http://localhost:3000/api'
 
 export function getToken() {
   return localStorage.getItem('hrflow_token')
@@ -32,4 +33,3 @@ export function apiPatch(path, body, config = {}) {
     ...config,
   })
 }
-
