@@ -1,0 +1,51 @@
+name: Rollback manuel (chronométré)
+
+# Déclenchement manuel pour simuler un incident en production et mesurer le
+# temps de retour à la version précédente (objectif Partech : < 10 minutes).
+# Voir docs/runbook-incident.md pour la procédure complète.
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "Container App à rollback (ex: hrflow-paie, hrftlow-api, hrflow-auth, hrflow-conges, hrflow-recrutement, hrflow-frontend)"
+        required: true
+      revision:
+        description: "Nom exact de la révision cible (ex: hrflow-paie--gh1a2b3c4). Laisser vide pour revenir automatiquement à la révision précédente."
+        required: false
+
+jobs:
+  rollback:
+    name: Rollback chronométré
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    env:
+      RG: ${{ secrets.AZURE_RESOURCE_GROUP }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Déterminer la révision précédente si non fournie
+        id: target
+        run: |
+          if [ -n "${{ inputs.revision }}" ]; then
+            echo "revision=${{ inputs.revision }}" >> "$GITHUB_OUTPUT"
+          else
+            prev=$(az containerapp revision list -g "$RG" -n "${{ inputs.app }}" \
+              --query "[?!(properties.trafficWeight==\`100\`)] | sort_by(@, &properties.createdTime) | [-1].name" -o tsv)
+            echo "revision=$prev" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Rollback + chronométrage
+        run: |
+          START=$(date +%s)
+          bash scripts/deploy/rollback.sh "${{ inputs.app }}" "${{ steps.target.outputs.revision }}"
+          END=$(date +%s)
+          echo "## ⏱ Rollback de ${{ inputs.app }} vers ${{ steps.target.outputs.revision }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Temps total (job GitHub Actions inclus) : $((END - START))s" >> "$GITHUB_STEP_SUMMARY"
+      - name: Vérification post-rollback
+        run: |
+          GATEWAY_FQDN=$(az containerapp show -g "$RG" -n hrftlow-api --query "properties.configuration.ingress.fqdn" -o tsv)
+          curl -sf --max-time 15 "https://$GATEWAY_FQDN/health"

@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: HRFlow Paie API
+  version: 1.0.0
+servers:
+  - url: /api/paie
+paths:
+  /calculer:
+    post:
+      summary: Calculer un bulletin de paie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employeeId, mois, annee]
+      responses:
+        '200':
+          description: Bulletin calculé
+        '404':
+          description: Salarié introuvable
+  /heures-sup:
+    post:
+      summary: Calculer les heures supplémentaires
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employeeId, heures]
+      responses:
+        '200':
+          description: Majoration calculée

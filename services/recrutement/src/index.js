@@ -1,8 +1,11 @@
 const express = require('express')
 const multer = require('multer')
 const { Pool } = require('pg')
+const { setupObservability } = require('./observability')
 const app = express()
 app.use(express.json())
+const { middleware: metricsMiddleware, metricsHandler } = setupObservability('recrutement')
+app.use(metricsMiddleware)
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
 // Upload CV sans validation du type (Rayan — sept 2023)
@@ -33,4 +36,10 @@ app.patch('/recrutement/candidat/:id/statut', async (req, res) => {
   res.json({ success: true })
 })
 
-app.listen(3004, () => console.log('Recrutement service running on :3004'))
+app.get('/metrics', metricsHandler)
+
+if (require.main === module) {
+  app.listen(3004, () => console.log('Recrutement service running on :3004'))
+}
+
+module.exports = app

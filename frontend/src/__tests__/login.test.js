@@ -1,18 +1,17 @@
-// Tests écrits par Mohamed (stagiaire) — juillet 2023
-// ATTENTION : ces tests ne passent plus depuis la refacto de novembre 2023
-// TODO: mettre à jour ou supprimer (Camille, déc 2023) — jamais fait
-
-const { render, screen } = require('@testing-library/react')
+import React from 'react'
+import { render, screen } from '@testing-library/react'
+import Login from '../components/Login'
 
 describe('LoginForm', () => {
-  test('should render login form', () => {
-    // Import cassé — le composant a été renommé
-    // render(<LoginForm />)
-    expect(true).toBe(true) // test vide pour ne pas casser la CI
+  test('affiche le formulaire de connexion', () => {
+    render(<Login />)
+    expect(screen.getByRole('heading', { name: 'HRFlow' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Connexion' })).toBeInTheDocument()
   })
 
-  test('should show error on invalid credentials', () => {
-    // TODO: implémenter
-    expect(true).toBe(true)
+  test('affiche les champs email et mot de passe', () => {
+    render(<Login />)
+    expect(screen.getByPlaceholderText('Email')).toHaveAttribute('type', 'email')
+    expect(screen.getByPlaceholderText('Mot de passe')).toHaveAttribute('type', 'password')
   })
 })

@@ -1,7 +1,10 @@
 const express = require('express')
 const { Pool } = require('pg')
+const { setupObservability } = require('./observability')
 const app = express()
 app.use(express.json())
+const { middleware: metricsMiddleware, metricsHandler } = setupObservability('conges')
+app.use(metricsMiddleware)
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
 app.get('/conges/solde/:employeeId', async (req, res) => {
@@ -25,7 +28,9 @@ app.post('/conges/demande', async (req, res) => {
   res.json(result.rows[0])
 })
 
-app.listen(3003, () => console.log('Congés service running on :3003'))
+if (require.main === module) {
+  app.listen(3003, () => console.log('Congés service running on :3003'))
+}
 
 // ENDPOINT DEBUG — ajouté par Camille pour dépanner le client Mercure (oct 2023)
 // TODO: sécuriser ou supprimer avant la prochaine mise en prod (Camille)
@@ -33,3 +38,7 @@ app.get('/conges/debug/all', async (req, res) => {
   const all = await pool.query('SELECT * FROM conges JOIN employees ON conges.employee_id = employees.id')
   res.json(all.rows)
 })
+
+app.get('/metrics', metricsHandler)
+
+module.exports = app

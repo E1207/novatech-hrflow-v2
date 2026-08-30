@@ -2,16 +2,22 @@ const express = require('express')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const { Pool } = require('pg')
+const { setupObservability } = require('./observability')
 
 const app = express()
 app.use(express.json())
+const { middleware: metricsMiddleware, metricsHandler } = setupObservability('auth')
+app.use(metricsMiddleware)
 
+// PostgreSQL managé (Azure/AWS) impose une connexion chiffrée : sans ssl,
+// la base rejette la connexion (pg_hba.conf "no encryption").
 const pool = new Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
+  ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
 })
 
 // Login simple — à améliorer plus tard
@@ -43,6 +49,12 @@ app.post('/auth/verify', (req, res) => {
   }
 })
 
-app.listen(3001, () => {
-  console.log('Auth service running on :3001')
-})
+app.get('/metrics', metricsHandler)
+
+if (require.main === module) {
+  app.listen(3001, () => {
+    console.log('Auth service running on :3001')
+  })
+}
+
+module.exports = app

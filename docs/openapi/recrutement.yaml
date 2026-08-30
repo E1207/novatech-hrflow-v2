@@ -1,0 +1,39 @@
+openapi: 3.0.3
+info:
+  title: HRFlow Recrutement API
+  version: 1.0.0
+servers:
+  - url: /api/recrutement
+paths:
+  /candidats:
+    get:
+      summary: Lister les candidatures
+      responses:
+        '200':
+          description: Liste des candidats
+  /candidat:
+    post:
+      summary: Créer une candidature
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Candidat créé
+  /candidat/{id}/statut:
+    patch:
+      summary: Mettre à jour le statut d'un candidat
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+      responses:
+        '200':
+          description: Statut mis à jour
