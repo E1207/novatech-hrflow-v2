@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  title: HRFlow Auth API
+  version: 1.0.0
+servers:
+  - url: /api/auth
+paths:
+  /login:
+    post:
+      summary: Authentifier un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: smoke-test@hrflow.local
+                password:
+                  type: string
+                  example: Demo1234!
+      responses:
+        '200':
+          description: JWT et profil utilisateur
+        '401':
+          description: Identifiants invalides
+  /verify:
+    post:
+      summary: Vérifier un token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token valide
+        '401':
+          description: Token invalide

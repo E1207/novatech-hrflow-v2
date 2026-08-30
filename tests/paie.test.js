@@ -34,8 +34,18 @@ test('execute la migration demandee', async () => {
   expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('ALTER TABLE employees'))
 })
 
-test('calcule les heures supplementaires', async () => {
+test('calcule les heures supplementaires (feature flag desactive par defaut)', async () => {
+  delete process.env.FEATURE_HEURES_SUP_V2
   pool.query.mockResolvedValueOnce({ rows: [{ salaire_mensuel_brut: 3000 }] })
   const response = await request(app).post('/paie/heures-sup').send({ employeeId: 7, heures: 10 }).expect(200)
-  expect(response.body).toMatchObject({ heures: 10, tauxHoraire: expect.closeTo(19.78, 1), majorationHeuresSup: expect.closeTo(247.25, 1) })
+  expect(response.body).toMatchObject({ heures: 10, tauxHoraire: expect.closeTo(19.78, 1), majorationHeuresSup: expect.closeTo(247.25, 1), featureHeuresSupV2: false })
+})
+
+test('calcule les heures supplementaires avec le taux progressif (feature flag active)', async () => {
+  process.env.FEATURE_HEURES_SUP_V2 = 'true'
+  pool.query.mockResolvedValueOnce({ rows: [{ salaire_mensuel_brut: 3000 }] })
+  const response = await request(app).post('/paie/heures-sup').send({ employeeId: 7, heures: 10 }).expect(200)
+  // 8h a 25% + 2h a 50% : (8*19.78*1.25) + (2*19.78*1.5)
+  expect(response.body).toMatchObject({ heures: 10, majorationHeuresSup: expect.closeTo(257.14, 1), featureHeuresSupV2: true })
+  delete process.env.FEATURE_HEURES_SUP_V2
 })

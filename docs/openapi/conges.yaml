@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: HRFlow Congés API
+  version: 1.0.0
+servers:
+  - url: /api/conges
+paths:
+  /solde/{employeeId}:
+    get:
+      summary: Obtenir le solde congés
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Solde congés calculé
+  /demande:
+    post:
+      summary: Créer une demande de congés
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employeeId, dateDebut, dateFin, motif]
+      responses:
+        '200':
+          description: Demande créée

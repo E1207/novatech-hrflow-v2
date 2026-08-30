@@ -1,8 +1,11 @@
 const express = require('express')
 const { Pool } = require('pg')
 const axios = require('axios')
+const { setupObservability } = require('./observability')
 const app = express()
 app.use(express.json())
+const { middleware: metricsMiddleware, metricsHandler } = setupObservability('paie')
+app.use(metricsMiddleware)
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
 app.post('/paie/calculer', async (req, res) => {
@@ -50,12 +53,36 @@ if (require.main === module) {
 
 // Rayan — fix heures supplémentaires (avr 2024)
 // Calcul majoré 25% pour les heures sup
+//
+// Feature flag FEATURE_HEURES_SUP_V2 (J3) : bascule vers le calcul légal
+// à taux progressif (25% jusqu'à 8h, 50% au-delà), sans redéploiement
+// d'image — il suffit de mettre à jour la variable d'environnement de la
+// Container App pour activer/désactiver la fonctionnalité en live.
+const heuresSupV2Enabled = () => process.env.FEATURE_HEURES_SUP_V2 === 'true'
+
+function calculerMajoration(heures, tauxHoraire) {
+  if (!heuresSupV2Enabled()) {
+    return heures * tauxHoraire * 1.25
+  }
+  const heuresA25 = Math.min(heures, 8)
+  const heuresA50 = Math.max(heures - 8, 0)
+  return heuresA25 * tauxHoraire * 1.25 + heuresA50 * tauxHoraire * 1.5
+}
+
 app.post('/paie/heures-sup', async (req, res) => {
   const { employeeId, heures } = req.body
   const emp = await pool.query('SELECT salaire_mensuel_brut FROM employees WHERE id = $1', [employeeId])
   const tauxHoraire = emp.rows[0].salaire_mensuel_brut / 151.67
-  const majorationHeuresSup = heures * tauxHoraire * 1.25
-  res.json({ heures, tauxHoraire, majorationHeuresSup, total: majorationHeuresSup })
+  const majorationHeuresSup = calculerMajoration(heures, tauxHoraire)
+  res.json({
+    heures,
+    tauxHoraire,
+    majorationHeuresSup,
+    total: majorationHeuresSup,
+    featureHeuresSupV2: heuresSupV2Enabled(),
+  })
 })
+
+app.get('/metrics', metricsHandler)
 
 module.exports = app

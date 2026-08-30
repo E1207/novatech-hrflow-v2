@@ -1,0 +1,20 @@
+groups:
+  - name: hrflow-health
+    rules:
+      - alert: HrflowHighErrorRate
+        expr: sum(rate(http_request_errors_total[5m])) by (service) / clamp_min(sum(rate(http_requests_total[5m])) by (service), 1) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Taux d'erreur élevé sur {{ $labels.service }}"
+          description: "Le taux d'erreur 5xx dépasse 5% sur 5 minutes."
+
+      - alert: HrflowHighLatencyP99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latence P99 élevée sur {{ $labels.service }}"
+          description: "La latence P99 dépasse 1 seconde."
