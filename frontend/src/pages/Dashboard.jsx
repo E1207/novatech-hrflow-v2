@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { apiGet, apiPatch, apiPost, getToken, getUser } from '../lib/api'
 
 const empty = null
+const DEMO_EMPLOYEE_ID = 1
 
 function JsonBox({ value }) {
   if (!value) return <div className="pill muted">Aucun résultat</div>
@@ -37,12 +38,12 @@ export default function Dashboard() {
     motif: 'Repos',
   })
   const [paieForm, setPaieForm] = useState({
-    employeeId: String(user.id || 1),
+    employeeId: String(DEMO_EMPLOYEE_ID),
     mois: '1',
     annee: '2026',
   })
   const [heuresSupForm, setHeuresSupForm] = useState({
-    employeeId: String(user.id || 1),
+    employeeId: String(DEMO_EMPLOYEE_ID),
     heures: '10',
   })
   const [candidateForm, setCandidateForm] = useState({
@@ -71,7 +72,7 @@ export default function Dashboard() {
   const loadConges = async () => {
     resetNotice()
     try {
-      const { data } = await apiGet(`/conges/solde/${user.id}`)
+      const { data } = await apiGet(`/conges/solde/${DEMO_EMPLOYEE_ID}`)
       setConges(data)
       setMessage('Solde congés chargé')
     } catch (e) {
@@ -146,7 +147,7 @@ export default function Dashboard() {
     resetNotice()
     try {
       const { data } = await apiPost('/conges/demande', {
-        employeeId: Number(user.id || 1),
+        employeeId: DEMO_EMPLOYEE_ID,
         dateDebut: congesForm.dateDebut,
         dateFin: congesForm.dateFin,
         motif: congesForm.motif,
@@ -226,6 +227,7 @@ export default function Dashboard() {
           <div className="stack">
             <div className="pill">Utilisateur : {user.email}</div>
             <div className="pill">ID : {user.id || 'n/a'}</div>
+            <div className="pill">ID salarié démo : {DEMO_EMPLOYEE_ID}</div>
             <div className="pill">Token : {token ? 'présent' : 'absent'}</div>
             <div className="toolbar">
               <button className="button primary" onClick={() => setSelectedTab('overview')}>Résumé</button>
