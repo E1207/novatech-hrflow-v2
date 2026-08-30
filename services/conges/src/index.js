@@ -1,7 +1,10 @@
 const express = require('express')
 const { Pool } = require('pg')
+const { setupObservability } = require('../../../monitoring/observability')
 const app = express()
 app.use(express.json())
+const { middleware: metricsMiddleware, metricsHandler } = setupObservability('conges')
+app.use(metricsMiddleware)
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
 app.get('/conges/solde/:employeeId', async (req, res) => {
@@ -35,5 +38,7 @@ app.get('/conges/debug/all', async (req, res) => {
   const all = await pool.query('SELECT * FROM conges JOIN employees ON conges.employee_id = employees.id')
   res.json(all.rows)
 })
+
+app.get('/metrics', metricsHandler)
 
 module.exports = app

@@ -1,6 +1,8 @@
 const express = require('express')
 const { createProxyMiddleware } = require('http-proxy-middleware')
+const { setupObservability } = require('../../../monitoring/observability')
 const app = express()
+const { middleware: metricsMiddleware, metricsHandler } = setupObservability('gateway')
 
 // CORS ouvert pour le dev — à restreindre en prod (TODO)
 app.use((req, res, next) => {
@@ -9,6 +11,8 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', '*')
   next()
 })
+
+app.use(metricsMiddleware)
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001'
 const PAIE_SERVICE_URL = process.env.PAIE_SERVICE_URL || 'http://localhost:3002'
@@ -25,6 +29,7 @@ app.use('/api/conges', createProxyMiddleware({ target: CONGES_SERVICE_URL, chang
 app.use('/api/recrutement', createProxyMiddleware({ target: RECRUTEMENT_SERVICE_URL, changeOrigin: true, pathRewrite: stripApiPrefix }))
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
+app.get('/metrics', metricsHandler)
 
 app.use((err, req, res, next) => {
   console.error(err.stack)

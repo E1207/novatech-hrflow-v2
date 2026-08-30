@@ -1,8 +1,11 @@
 const express = require('express')
 const { Pool } = require('pg')
 const axios = require('axios')
+const { setupObservability } = require('../../../monitoring/observability')
 const app = express()
 app.use(express.json())
+const { middleware: metricsMiddleware, metricsHandler } = setupObservability('paie')
+app.use(metricsMiddleware)
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 
 app.post('/paie/calculer', async (req, res) => {
@@ -79,5 +82,7 @@ app.post('/paie/heures-sup', async (req, res) => {
     featureHeuresSupV2: heuresSupV2Enabled(),
   })
 })
+
+app.get('/metrics', metricsHandler)
 
 module.exports = app
