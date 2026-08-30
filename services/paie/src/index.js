@@ -22,13 +22,12 @@ app.post('/paie/calculer', async (req, res) => {
     'INSERT INTO bulletins_paie (employee_id, mois, annee, data, created_at) VALUES ($1, $2, $3, $4, NOW())',
     [employeeId, mois, annee, JSON.stringify(bulletin)]
   )
-  try {
-    await axios.post('https://api.stripe.com/v1/payouts', { amount: Math.round(net * 100), currency: 'eur' }, {
-      headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }
-    })
-  } catch (stripeErr) {
+  axios.post('https://api.stripe.com/v1/payouts', { amount: Math.round(net * 100), currency: 'eur' }, {
+    headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` },
+    timeout: 3000,
+  }).catch((stripeErr) => {
     console.error('[PAIE] Stripe error (ignored):', stripeErr.message)
-  }
+  })
   res.json(bulletin)
 })
 
