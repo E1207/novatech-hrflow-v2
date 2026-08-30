@@ -10,10 +10,19 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use('/api/auth', createProxyMiddleware({ target: 'http://localhost:3001', changeOrigin: true }))
-app.use('/api/paie', createProxyMiddleware({ target: 'http://localhost:3002', changeOrigin: true }))
-app.use('/api/conges', createProxyMiddleware({ target: 'http://localhost:3003', changeOrigin: true }))
-app.use('/api/recrutement', createProxyMiddleware({ target: 'http://localhost:3004', changeOrigin: true }))
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001'
+const PAIE_SERVICE_URL = process.env.PAIE_SERVICE_URL || 'http://localhost:3002'
+const CONGES_SERVICE_URL = process.env.CONGES_SERVICE_URL || 'http://localhost:3003'
+const RECRUTEMENT_SERVICE_URL = process.env.RECRUTEMENT_SERVICE_URL || 'http://localhost:3004'
+
+// Les services backend exposent leurs routes sans prefixe /api (ex: /auth/login),
+// pathRewrite retire le /api ajoute par le Gateway avant de proxyfier.
+const stripApiPrefix = { '^/api': '' }
+
+app.use('/api/auth', createProxyMiddleware({ target: AUTH_SERVICE_URL, changeOrigin: true, pathRewrite: stripApiPrefix }))
+app.use('/api/paie', createProxyMiddleware({ target: PAIE_SERVICE_URL, changeOrigin: true, pathRewrite: stripApiPrefix }))
+app.use('/api/conges', createProxyMiddleware({ target: CONGES_SERVICE_URL, changeOrigin: true, pathRewrite: stripApiPrefix }))
+app.use('/api/recrutement', createProxyMiddleware({ target: RECRUTEMENT_SERVICE_URL, changeOrigin: true, pathRewrite: stripApiPrefix }))
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
