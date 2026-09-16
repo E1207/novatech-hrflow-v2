@@ -18,7 +18,10 @@ source ./apps.sh
 : "${IMAGE_TAG:?IMAGE_TAG requis (ex: SHA du commit)}"
 : "${ACR_LOGIN_SERVER:?ACR_LOGIN_SERVER requis}"
 
-REVISION_SUFFIX="gh${IMAGE_TAG:0:8}"
+# GITHUB_RUN_ATTEMPT (fournie automatiquement par GitHub Actions, "1" hors CI)
+# rend le suffixe unique même quand on relance le workflow sur le même commit :
+# Azure Container Apps refuse de recréer une révision dont le suffixe existe déjà.
+REVISION_SUFFIX="gh${IMAGE_TAG:0:8}r${GITHUB_RUN_ATTEMPT:-1}"
 STATE_FILE="rollback-state.env"
 : > "$STATE_FILE"
 
